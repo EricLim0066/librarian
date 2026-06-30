@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Discoveries</title>
+</head>
+<body>
+
+    <header class="site-header">
+        <nav class="main-nav">
+            <div class="container1">
+                <span class="case-study">CASE STUDY</span>
+                <span class="case-study2">| Web vs Native Apps Research</span>
+            </div>
+            <ul class="container2">
+                <li><a href="index.html" class="overview">OVERVIEW</a></li>
+                <li><a href="methodology.html" class="overview">METHODOLOGY</a></li>
+                <li><a href="data.html" class="overview">DATA COLLECTION</a></li>
+                <li><a href="discoveries.html" class="overview-active">DISCOVERIES</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main style="padding-top: 80px;"> <section id="discoveries">
+            <h1>Key Research Discoveries</h1>
+
+            <article>
+                <h2>1. Environmental Stress Test</h2>
+                <p><strong>Finding:</strong> Modern browser engines (e.g., V8) almost match Native performance under optimal conditions. However, Native apps remain more stable (under 2s) during network degradation because they rely on pre-installed local assets.</p>
+            </article>
+
+            <article>
+                <h2>2. Responsiveness & Synchronization</h2>
+                <p><strong>Finding:</strong> Native apps utilize direct OS communication channels, reducing UI lag. Web apps must route requests through the browser's JavaScript engine, adding processing overhead at every interaction point.</p>
+            </article>
+
+            <article>
+                <h2>3. Real-Time Synchronization</h2>
+                <p><strong>Finding:</strong> Native apps leverage low-level TCP/UDP sockets for near-instant synchronization. Web apps are bound by WebSocket constraints and browser-level polling, leading to higher perceived latency.</p>
+            </article>
+
+            <article>
+                <h2>4. Framework Overhead (The Canva Case)</h2>
+                <p><strong>Finding:</strong> Contrary to intuition, the Canva Web version launched faster than the Desktop Native version. </p>
+                <p><strong>Analysis:</strong> The Native app is an "Electron Hybrid" that must cold-boot a redundant Chromium browser shell, causing higher memory usage compared to an optimized browser tab.</p>
+            </article>
+
+            <article>
+                <h2>5. Scope Study of WhatsApp</h2>
+                <p><strong>Mobile Web Limitations:</strong> Authentication loops, poor UI scaling, and JavaScript sandbox limitations for E2EE decryption lead to a degraded experience compared to the multi-threaded, hardware-accelerated Native app.</p>
+            </article>
+        </section>
+    </main>
+
+</body>
+</html>

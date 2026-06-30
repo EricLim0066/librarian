@@ -1,0 +1,36 @@
+.BigBox{
+    width: 400px;
+    height: 300px;
+    background-color: yellow;
+}
+.SmallBox{
+    width: 170px;
+    height: 120px;
+    padding-left: 20px;
+    padding-top: 20px;
+    float: left;
+    overflow: hidden;
+}
+.red,.green,.blue,.purple{
+    width: 170px;
+    height: 120px;
+    padding: 17px;
+    padding-top: 20px;
+    border: 2px solid black;
+    box-sizing: border-box;
+    font-size: 17px;
+    text-align: justify;
+    text-justify: inter-character;
+}
+.red{
+    background-color: red;
+}
+.green{
+    background-color: green;
+}
+.blue{
+    background-color: blue;
+}
+.purple{
+    background-color: purple;
+}

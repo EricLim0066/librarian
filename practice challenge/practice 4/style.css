@@ -1,0 +1,48 @@
+.main-container {
+    background: yellow;
+    width: 960px;
+    min-height: 600px;
+    margin: auto;
+    padding-top: 1px;
+}
+.header {
+    background: red;
+    width: 920px;
+    height: 100px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 20px;
+    box-sizing: border-box;
+    font-size: 40px;
+    text-justify: inter-character;
+    display: flex;
+    /* display flex, flexible layout*/
+    align-items: center;
+    /*align items, align horizontally*/
+    justify-content: center;
+    /*justify content, align vertically*/
+}
+.child-header {
+    overflow: hidden;
+    padding-top: 20px;
+}
+.sidebar,.content {
+    float: left;
+    height: 440px;
+    margin-left: 20px;
+    padding: 12px;
+    box-sizing: border-box;
+    color: white;
+    text-align: justify;
+    text-justify: inter-character;
+}
+.sidebar {
+    background-color: green;
+    width: 200px;
+    font-size: 12px;
+}
+.content {
+    background-color: blue;
+    width: 700px;
+    font-size: 20px;
+}

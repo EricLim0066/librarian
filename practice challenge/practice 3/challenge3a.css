@@ -1,0 +1,52 @@
+.BigBox {
+/*css use the class id at the html, "."dot is class selector , used to prevent browser confuse between system label and our own class label*/    
+    width: 600px;
+    height: 200px;
+    background-color: purple;
+    position:relative;
+    /*position relative, set the boundary for the whole box, any movement must inside the box*/
+}
+.red,.yellow,.blue,.green{
+    float: left;
+    /*float left, push the component to left, and add the new component from left to right*/
+    height: 150px;
+    width: 150px;
+    position: absolute;
+    /*position absolute, set to free to point the loaction, always use together with left, right, bottom...*/
+    bottom: 0px;
+    /*bottom left right...., place the components close to which side*/
+    /*px here's not occupy space, it's used to define the position (like coordinate), which is placing the components to which location.*/
+    box-sizing: border-box;
+    /*border box, component calculation changed to include boundaries, prevent the text out of bounds.*/
+    word-break: break-all;
+    /*word-break, forced the text to change line */
+    font-size: 23px;
+    text-align: justify;
+    /*justify, align left and right like excel*/
+    text-justify: inter-character;
+    /*inter-character, distribute characters evenly from left to right*/
+}
+.red {
+    background-color: red;
+    left: 0;
+    /*0px, place the component to 0*/
+    padding-left: 20px;
+    /*padding, internal distance boundary*/
+}
+.yellow {
+    background-color: yellow;
+    left: 450px;
+    /*450px, place the component to 450*/
+    padding-top: 20px;
+}
+.blue {
+    background-color: blue;
+    left : 300px;
+    /*300px, place the component to 300*/
+    padding-left: 40px;
+}    
+.green {
+    background-color: green;
+    left: 150px;
+    /*150px, place the component to 150*/
+}

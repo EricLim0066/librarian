@@ -1,0 +1,37 @@
+.BigBox {
+    height: 330px;
+    width: 500px;
+    background-color: purple;
+}
+.row {
+    overflow: hidden;
+    /*overflow hidden, force the parent component to re-enclose the floating child component.*/
+}
+.red,.green,.blue,.yellow {
+    width: 250px;
+    height: 150px;
+    float: left;
+    /*float left, push the component to left, and add the new component from left to right*/
+    padding: 1px;
+    box-sizing: border-box;
+    font-size: 24px;
+    text-align: justify;
+    text-justify: inter-character;
+}
+.red {
+    background-color: red;
+}
+.green {
+    background-color: green;
+    padding-left: 100px;
+}
+.blue {
+    background-color: blue;
+    padding-left: 100px;
+}
+.yellow {
+    background-color: yellow;
+}
+.top {
+    height: 30px;
+}
