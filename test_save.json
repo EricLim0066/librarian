@@ -16,10 +16,10 @@
     "fine_record": 0,
     "borrow_count": 0,
     "id": 1,
-    "name": "Siti",
-    "patience": 5,
-    "personality": "Angry",
-    "intent": "borrow",
+    "name": "Cheow Chi Bay",
+    "patience": 7,
+    "personality": "Weird",
+    "intent": "scene",
     "has_book": true
   }
 }

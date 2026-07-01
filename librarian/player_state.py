@@ -166,13 +166,15 @@ class player_state :
             self.start_dine_in(2)
         elif command == system_comp[2]:
             self.eat_snack()
+            
         elif command == system_comp[3]:
             for command, description in COMMAND_POOL.items():
                 message = f"{command:<8} - {description}"
                 self.add_message(message)
             return
         elif command == system_comp[4]:
-            message ="This command isn't implemented yet"
+
+            message = 3
             self.add_message(message)
             return
         else :
