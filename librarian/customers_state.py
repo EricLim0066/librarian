@@ -64,17 +64,20 @@ class customers_management :
     def __init__(self):
         self.customers = []
         self.customers_next_id = 1
+        self.total_members = 0
 
     def to_dict (self) :
         return {
             "customers": [customer.to_dict() for customer in self.customers],
-            "customers_next_id": self.customers_next_id
+            "customers_next_id": self.customers_next_id,
+            "total_members" : self.total_members
         }
     
     @classmethod
     def from_dict(cls,data) :
         manage = cls()
         manage.customers_next_id = data["customers_next_id"]
+        manage.total_members = data["total_members"]
         manage.customers = [customers_state.from_dict(c_data) for c_data in data["customers"]]  
         return manage
 
@@ -171,6 +174,12 @@ class customers_management :
             score_delta = 1   
             
         elif event_type == "register":
+            customer_is_member = True
+            self.total_members += 1
+            if player.snack < 10:
+                player.snack += 1
+                player.add_message("Welcome gift: you gotta bonus 1 snack")
+
             score_delta = 1
 
         elif event_type == "complaint":
@@ -185,11 +194,11 @@ class customers_management :
         if random.random() < 0.3 :
             if player.snack < 10:
                 player.snack += 1
-                message = "You gotta 1 snack"
+                message = "You gotta 1 snack" 
             else :
                 message = "You are full holdings of snack"
                 
-            player.message_queue_up.append(message)       
+            player.add_message(message)       
         return score_delta
     
     def get_returning_pool (self) :

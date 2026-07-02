@@ -16,10 +16,10 @@
     "fine_record": 0,
     "borrow_count": 0,
     "id": 1,
-    "name": "Cheow Chi Bay",
-    "patience": 7,
-    "personality": "Weird",
-    "intent": "scene",
+    "name": "Lum Jun Xiang",
+    "patience": 10,
+    "personality": "Normal",
+    "intent": "directions",
     "has_book": true
   }
 }

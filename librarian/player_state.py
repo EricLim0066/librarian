@@ -1,6 +1,6 @@
 from command_pool import COMMAND_POOL
 from command_pool import HUNGRY_TIPS_POOL
-
+from command_pool import TUTORIAL_POOL
 import json
 
 GRID_W = 5
@@ -164,19 +164,23 @@ class player_state :
                 self.add_message("You're current eating now")
                 return
             self.start_dine_in(2)
+
         elif command == system_comp[2]:
             self.eat_snack()
-            
+
         elif command == system_comp[3]:
-            for command, description in COMMAND_POOL.items():
-                message = f"{command:<8} - {description}"
+            for cmd, description in COMMAND_POOL.items():
+                message = f"{cmd:<8} - {description}"
                 self.add_message(message)
             return
+        
         elif command == system_comp[4]:
-
-            message = 3
-            self.add_message(message)
-            return
+            for tutorial in TUTORIAL_POOL : 
+                for line in tutorial :
+                    message = line
+                    self.add_message(message)
+                self.add_message("_" * 30)
+                
         else :
             message ="This command isn't implemented yet"
             self.add_message(message)
