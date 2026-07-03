@@ -14,7 +14,6 @@ class player_state :
         self.hungry = 100
         self.stage = "Full"
         self.warned = None
-        self.stamina = 100
         self.snack = snack
         self.dine_in = False
         self.dine_in_end = None 

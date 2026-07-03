@@ -1,6 +1,9 @@
 
 NAME_POOL = ["Aunty Sarah", "Cheow Chi Bay", "Muhammad Amirul Hafiz", "Chong Bing Heng", "Lim Jing Xiang",
-             "Lum Jun Xiang", "Darren", "Siti", "Kennedy Leon", "Encik Firdhaus", "Mick", ]
+             "Lum Jun Xiang", "Darren", "Siti", "Kennedy Leon", "Encik Firdhaus", "Mick", "Aguindo Mio","Ito aiko",
+             "Nguyen Thanh Son", "Franklin", "Erik", "Ly Mai", "Jennie","Luis","William Bennett","Charlotte","Kim Ha Jun",
+             "Park Do Yun", "Nguyen Minh Quan","Tran Chi Linh","Sato Ren","Takafumi Tsumugi","Seonwoo Eun Ha","Anis Amira",
+             "Lam Van Khang", "Kagura Siro", "Slias Throne", "Mr.Justin", "Muhammad Adam", "Nurul Aisha","Ahmad Danial"]
 
 PERSONALITY_CONFIG_POOL = { 
     "Normal" : {"patience" : (8,12), "scene_chance" : 0.05, "decay": 2, "weight": 70 },
