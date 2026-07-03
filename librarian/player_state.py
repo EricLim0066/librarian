@@ -158,6 +158,7 @@ class player_state :
             
             event_type = customer.intent
             self.score_delta += manage.resolve(customer, event_type, self)
+            
 
         elif command == system_comp[1]:
             if self.dine_in == True :
@@ -201,7 +202,7 @@ if __name__ == "__main__" :
     from customers_state import customers_management
     from customers_state import customers_state
 
-    state = player_state(pos=[2,2])
+    state = player_state(pos=[2,1])
     state.snack = 5
     state.score_delta = 10
 
@@ -227,10 +228,10 @@ if __name__ == "__main__" :
     new_player = player_state.from_dict(loaded_data["player"])    
     new_customer = customers_state.from_dict(loaded_data["customer"])    # 不是c.from_dict
     
-    print(f"原始 pos={state.pos}, snack={state.snack}, score={state.score_delta}")
-    print(f"还原 pos={new_player.pos}, snack={new_player.snack}, score={new_player.score_delta}")
-    print(f"原始customer due_day={c.due_day}, has_book={c.has_book}")
-    print(f"还原customer due_day={new_customer.due_day}, has_book={new_customer.has_book}")
+    print(f"before pos={state.pos}, snack={state.snack}, score={state.score_delta}")
+    print(f"after pos={new_player.pos}, snack={new_player.snack}, score={new_player.score_delta}")
+    print(f"before customer due_day={c.due_day}, has_book={c.has_book}")
+    print(f"after customer due_day={new_customer.due_day}, has_book={new_customer.has_book}")
 
     print("Welcome to librarian Simulater Game!")
     print("Press '?' to show tutorial")

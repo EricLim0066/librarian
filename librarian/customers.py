@@ -103,7 +103,13 @@ DIALOGUE_POOL = {
                          "I LOST THAT RUBBISH ANYMORE!! WHAT YOU GONNA DOO?!! TRY ME HUHH?!!"]
     },
 }
-
+GOODBYE_POOL = {
+    "Normal" :  ["Thannk you so much, goodbye !","Thanks, see you next time ~","See you later"],
+    "Happy" :   ["Thanks! bye-bye, have fun!","Goodbye, my friend! stay awesome!","HAHAHA! Hope you have a fun day! Bye!! "],
+    "Sad" :     ["Thanks...,take care… goodbye...","Goodbye… I'll miss you", "Goodbye lah..., my heart pain sia"],
+    "Weird" :   ["I'm a fool if i come back again..", "Bye? hehe..","Bye lah, nobodys like here..,hehe.."], 
+    "Angry" :   ["I WONTT COME BACKK!!","THANKSS? GET LOSTT!!","I'LL HIT YOU IF I COME BACK AGAIN !!"],
+}
 NO_BOOK_INTENT_POOL = {
     "borrow" : {"weight" : 20},
     "directions" : {"weight" : 20},

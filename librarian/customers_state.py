@@ -4,6 +4,8 @@ from customers import PERSONALITY_CONFIG_POOL
 from customers import NO_BOOK_INTENT_POOL
 from customers import HAS_BOOK_INTENT_POOL
 from customers import NAME_POOL
+from customers import DIALOGUE_POOL
+from customers import GOODBYE_POOL
 
 import json
 
@@ -21,6 +23,7 @@ class customers_state :
         self.borrow_count = 0
         self.fine_record = 0
         self.due_day = 0
+        self.is_member = False
 
     def to_dict (self) :
         return {
@@ -33,23 +36,25 @@ class customers_state :
             "patience" : self.patience,
             "personality" : self.personality,
             "intent" : self.intent,
-            "has_book" : self.has_book
+            "has_book" : self.has_book,
+            "is_member" : self.is_member
         }
     
     @classmethod
     def from_dict (cls, data) :
         customer = cls(
-        name=data["name"],
-        patience=data["patience"],
-        personality=data["personality"],
-        id=data["id"],
-        intent=data["intent"]
+            name=data["name"],
+            patience=data["patience"],
+            personality=data["personality"],
+            id=data["id"],
+            intent=data["intent"]
         )
         customer.pos = data["pos"]
         customer.due_day = data["due_day"]
         customer.fine_record = data["fine_record"]
         customer.borrow_count = data["borrow_count"]
         customer.has_book = data["has_book"]  
+        customer.is_member = data["is_member"]
         return customer
         
     def tick_patience(self):
@@ -58,6 +63,10 @@ class customers_state :
         if self.patience <= 0 :
             self.patience = 0
             self.status = "left"
+
+    def tick_due_day(self):
+        if self.has_book :
+            self.due_day -= 1
 
 class customers_management :
 
@@ -86,7 +95,20 @@ class customers_management :
 
     def tick_all (self) :
         for customer in self.customers:
+            if customer.status == "left" :
+                continue
+            # skip all the customers who left
+
             customer.tick_patience()
+            if customer.status == "left" :
+                message = f"{customer.name} left the library"
+                player.add_message(message)
+            # catch the customers who just left
+
+    def tick_all_due_day (self) :
+        for customer in self.customers :
+            if customer.has_book :
+                customer.tick_due_day()
             
     def get_nearby(self, player_pos):
         for customer in self.customers:
@@ -124,7 +146,7 @@ class customers_management :
         new_customer.pos = pos
         self.register_customer(new_customer)
         return new_customer
-
+    
     def event_borrow_book(self,customer) :
         customer.has_book = True
         customer.borrow_count += 1
@@ -146,49 +168,98 @@ class customers_management :
     def resolve(self, customer, event_type, player):
 
         if event_type == "borrow" and customer.has_book == False:
+            line = random.choice(DIALOGUE_POOL[customer.personality]["borrow"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
             self.event_borrow_book(customer)
+            player.add_message(f"(You helped {customer.name} borrow a book)")
 
             score_delta = 1
 
         elif event_type == "fine" :
+            line = random.choice(DIALOGUE_POOL[customer.personality]["fine"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
             self.event_fine_lost(customer)
-            score_delta = 1       
+            player.add_message(f"({customer.name} has paid the fine)")
+            
+            score_delta = 1  
 
         elif event_type == "lost_book":
+            line = random.choice(DIALOGUE_POOL[customer.personality]["lost_book"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
             self.event_lost_book(customer)
             self.event_fine_lost(customer)
+            player.add_message(f"({customer.name} has paid the fine for losing books)")
+
             score_delta = 1   
 
         elif event_type == "return_book" :
+            line = random.choice(DIALOGUE_POOL[customer.personality]["return_book"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
             if not customer.due_day < 0:
                 self.event_return_book(customer)
+                player.add_message(f"({customer.name} has returned the books)")
             else :
                 self.event_return_book(customer)
                 self.event_fine_late(customer)    
+                player.add_message(f"({customer.name} has paid the fine for late to return books)")
+
             score_delta = 1 
             
         elif event_type == "directions":
+            line = random.choice(DIALOGUE_POOL[customer.personality]["directions"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
+            player.add_message(f"(You helped {customer.name} directions to the toilet)")
             score_delta = 1
 
         elif event_type == "scene":
+            line = random.choice(DIALOGUE_POOL[customer.personality]["scene"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
+            player.add_message(f"(You appease {customer.name} their patiences)")
             score_delta = 1   
             
         elif event_type == "register":
-            customer_is_member = True
+            line = random.choice(DIALOGUE_POOL[customer.personality]["register"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
+            customer.is_member = True
             self.total_members += 1
             if player.snack < 10:
                 player.snack += 1
                 player.add_message("Welcome gift: you gotta bonus 1 snack")
+            
+            player.add_message(f"(You helped {customer.name} register their members)")
 
             score_delta = 1
 
         elif event_type == "complaint":
+            line = random.choice(DIALOGUE_POOL[customer.personality]["complaint"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+
+            player.add_message(f"(You settled {customer.name}'s problem)")
             score_delta = 1   
 
         else :
             score_delta = 0    
         
+        goodbye = random.choice(GOODBYE_POOL[customer.personality])
+        player.add_message(f"{customer.name}: {goodbye}")
+
         customer.status = "left" 
+        player.add_message(f"{customer.name} has left")
 
         message = None
         if random.random() < 0.3 :
@@ -196,7 +267,7 @@ class customers_management :
                 player.snack += 1
                 message = "You gotta 1 snack" 
             else :
-                message = "You are full holdings of snack"
+                message = "Your snack pouch is already full (max 10)"
                 
             player.add_message(message)       
         return score_delta
@@ -246,11 +317,13 @@ if __name__ == "__main__" :
     from player_state import player_state
 
     manage = customers_management()
-    player = player_state()
+    player = player_state(pos=[0.0])
+    player.snack = 9
 
     c1 = manage.spawn_random(pos=[1,1])
     c1.has_book = True
     c1.due_day = 3
+    c1.intent = "register"
 
     c2 = manage.spawn_random(pos=[2,1])
     c2.has_book = True
@@ -274,6 +347,16 @@ if __name__ == "__main__" :
     print(count["count1"])
     print(count["count2"])
     print(count["count3"])  
+
+    print("==========================================================")
+
+    print(f"before is_member={c1.is_member}, total_members={manage.total_members}, snack={player.snack}")
+
+    score = manage.resolve(c1, "register", player)
+
+    print(f"after is_member={c1.is_member}, total_members={manage.total_members}, snack={player.snack}, score_delta={score}")
+    for msg in player.flush_message():
+        print(msg)
 
 
 

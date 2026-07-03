@@ -2,7 +2,7 @@
   "player": {
     "pos": [
       2,
-      2
+      1
     ],
     "snack": 5,
     "score_delta": 10
@@ -16,10 +16,11 @@
     "fine_record": 0,
     "borrow_count": 0,
     "id": 1,
-    "name": "Lum Jun Xiang",
-    "patience": 10,
+    "name": "Chong Bing Heng",
+    "patience": 11,
     "personality": "Normal",
-    "intent": "directions",
-    "has_book": true
+    "intent": "scene",
+    "has_book": true,
+    "is_member": false
   }
 }
