@@ -105,6 +105,11 @@ class player_state :
             self.pos[0] = new_x
             self.pos[1] = new_y
 
+    def minus_score(self, amount):
+        self.score_delta -= amount
+        if self.score_delta <= 0 :
+            self.score_delta = 0
+
     def start_dine_in (self, current_minute) :
         self.dine_in = True
         self.dine_in_end = current_minute + 2
@@ -185,6 +190,9 @@ class player_state :
             message ="This command isn't implemented yet"
             self.add_message(message)
             return
+        
+    def get_score(self):
+        return self.score_delta
         
     def add_message (self, message) :
         if message is not None :

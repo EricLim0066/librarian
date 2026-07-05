@@ -56,17 +56,21 @@ class customers_state :
         customer.has_book = data["has_book"]  
         customer.is_member = data["is_member"]
         return customer
-        
-    def tick_patience(self):
-        self.patience -= 1
-
-        if self.patience <= 0 :
-            self.patience = 0
-            self.status = "left"
-
+    
     def tick_due_day(self):
         if self.has_book :
             self.due_day -= 1
+        
+    def tick_patience(self, player):
+        self.lose_patience(1, player)
+
+    def lose_patience(self, amount, player) :
+        self.patience -= amount
+
+        if self.patience <= 0:
+            self.patience = 0
+            self.status = "left"
+            player.minus_score(2)
 
 class customers_management :
 
@@ -99,7 +103,7 @@ class customers_management :
                 continue
             # skip all the customers who left
 
-            customer.tick_patience()
+            customer.tick_patience(player)
             if customer.status == "left" :
                 message = f"{customer.name} left the library"
                 player.add_message(message)
@@ -139,6 +143,10 @@ class customers_management :
             event_weight.append(NO_BOOK_INTENT_POOL[intent]["weight"])
 
         random_event = random.choices(intent_event, weights=event_weight, k=1)[0]    
+
+        scene_chance = PERSONALITY_CONFIG_POOL[random_personality]["scene_chance"]
+        if random.random() < scene_chance:
+            random_event = "scene"
 
         new_customer = customers_state(random_name, patience, random_personality, self.customers_next_id, random_event)
         self.customers_next_id += 1
@@ -226,8 +234,12 @@ class customers_management :
             message = f"{customer.name}: {line}"
             player.add_message(message)
 
+            for other in self.customers:
+                if other.status == "waiting" and other.id != customer.id:
+                    other.lose_patience(1, player)
+
             player.add_message(f"(You appease {customer.name} their patiences)")
-            score_delta = 1   
+            score_delta -= 2
             
         elif event_type == "register":
             line = random.choice(DIALOGUE_POOL[customer.personality]["register"])
@@ -313,12 +325,14 @@ class customers_management :
         return self.spawn_random(pos)
         # the other 0.8 rate
 
+
 if __name__ == "__main__" :
     from player_state import player_state
 
     manage = customers_management()
     player = player_state(pos=[0.0])
     player.snack = 9
+    player.score_delta = 2
 
     c1 = manage.spawn_random(pos=[1,1])
     c1.has_book = True
@@ -328,6 +342,7 @@ if __name__ == "__main__" :
     c2 = manage.spawn_random(pos=[2,1])
     c2.has_book = True
     c2.due_day = 1
+    c2.patience = 1
 
     c3 = manage.spawn_random(pos=[3,1])
     c3.has_book = True
@@ -338,7 +353,7 @@ if __name__ == "__main__" :
     "count2" : {},
     "count3" : {}
     }
-    for i in range(100):
+    for i in range(1000):
         result = manage.spawn_random([0,0])
         # print(f"{result.name}, {result.personality}, {result.patience}, {result.intent},{result.id}")
         count["count1"][result.intent] = count["count1"].get(result.intent, 0) + 1
@@ -358,6 +373,27 @@ if __name__ == "__main__" :
     for msg in player.flush_message():
         print(msg)
 
+    print("==========================================================")
 
+    print(f"before customer_patience: {c2.patience}, customer_state: {c2.status}, score: {player.score_delta}")
+    c2.tick_patience(player)
+    print(f"before customer_patience: {c2.patience}, customer_state: {c2.status}, score: {player.score_delta}")
 
+    print("==========================================================\n")
 
+    random.seed(1)
+    N = 10000
+
+    print("=== every personality independent testing scene rate ===")
+    print(f"{'personality':<10} {'Settings':<8} {'Accuary':<10} {'Times'}")
+
+    for personality, config in PERSONALITY_CONFIG_POOL.items():
+        scene_chance = config["scene_chance"]
+        hit_count = 0
+
+        for i in range(N):
+            if random.random() < scene_chance:
+                hit_count += 1
+
+        actual_rate = hit_count / N
+        print(f"{personality:<10} {scene_chance:<8} {actual_rate:<10.4f} {hit_count}/{N}")
