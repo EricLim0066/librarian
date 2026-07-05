@@ -11,7 +11,7 @@ import json
 
 class customers_state :
 
-    def __init__(self, name, patience, personality,id,intent):
+    def __init__(self, name, patience, personality,id,intent,decay):
         self.name = name
         self.patience = patience
         self.personality = personality
@@ -24,6 +24,8 @@ class customers_state :
         self.fine_record = 0
         self.due_day = 0
         self.is_member = False
+        self.decay = decay
+        self.tick_customer = 0
 
     def to_dict (self) :
         return {
@@ -37,7 +39,8 @@ class customers_state :
             "personality" : self.personality,
             "intent" : self.intent,
             "has_book" : self.has_book,
-            "is_member" : self.is_member
+            "is_member" : self.is_member,
+            "decay" : self.decay,
         }
     
     @classmethod
@@ -47,7 +50,8 @@ class customers_state :
             patience=data["patience"],
             personality=data["personality"],
             id=data["id"],
-            intent=data["intent"]
+            intent=data["intent"],
+            decay=data["decay"]
         )
         customer.pos = data["pos"]
         customer.due_day = data["due_day"]
@@ -62,7 +66,10 @@ class customers_state :
             self.due_day -= 1
         
     def tick_patience(self, player):
-        self.lose_patience(1, player)
+        self.tick_customer += 1
+        if self.tick_customer >= self.decay :
+            self.tick_customer = 0
+            self.lose_patience(1, player)
 
     def lose_patience(self, amount, player) :
         self.patience -= amount
@@ -97,7 +104,7 @@ class customers_management :
     def register_customer(self, customer):
         self.customers.append(customer)
 
-    def tick_all (self) :
+    def tick_all (self, player) :
         for customer in self.customers:
             if customer.status == "left" :
                 continue
@@ -148,7 +155,8 @@ class customers_management :
         if random.random() < scene_chance:
             random_event = "scene"
 
-        new_customer = customers_state(random_name, patience, random_personality, self.customers_next_id, random_event)
+        decay = PERSONALITY_CONFIG_POOL[random_personality]["decay"]
+        new_customer = customers_state(random_name, patience, random_personality, self.customers_next_id, random_event,decay)
         self.customers_next_id += 1
 
         new_customer.pos = pos

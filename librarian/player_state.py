@@ -233,7 +233,7 @@ if __name__ == "__main__" :
         loaded_data = json.load(f)
     
     new_player = player_state.from_dict(loaded_data["player"])    
-    new_customer = customers_state.from_dict(loaded_data["customer"])    # 不是c.from_dict
+    new_customer = customers_state.from_dict(loaded_data["customer"])    # not c.from_dict
     
     print(f"before pos={state.pos}, snack={state.snack}, score={state.score_delta}")
     print(f"after pos={new_player.pos}, snack={new_player.snack}, score={new_player.score_delta}")
@@ -249,6 +249,7 @@ if __name__ == "__main__" :
         try:
             state.execute_command(user_input, manage)
             state.tick_hunger()
+            manage.tick_all(state)
 
             for message in state.flush_message() :
                 print(message)
