@@ -250,6 +250,7 @@ if __name__ == "__main__" :
             state.execute_command(user_input, manage)
             state.tick_hunger()
             manage.tick_all(state)
+            print(f"customer patience {c.patience}, tick decay {c.decay}, tick customer {c.tick_customer}")
 
             for message in state.flush_message() :
                 print(message)

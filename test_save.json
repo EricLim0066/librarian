@@ -16,12 +16,12 @@
     "fine_record": 0,
     "borrow_count": 0,
     "id": 1,
-    "name": "Slias Throne",
-    "patience": 16,
-    "personality": "Happy",
-    "intent": "register",
+    "name": "Muhammad Amirul Hafiz",
+    "patience": 8,
+    "personality": "Weird",
+    "intent": "directions",
     "has_book": true,
     "is_member": false,
-    "decay": 3
+    "decay": 1
   }
 }
