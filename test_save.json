@@ -8,20 +8,9 @@
     "score_delta": 10
   },
   "customer": {
-    "pos": [
-      1,
-      1
-    ],
-    "due_day": 2,
-    "fine_record": 0,
-    "borrow_count": 0,
-    "id": 1,
-    "name": "Muhammad Amirul Hafiz",
-    "patience": 8,
-    "personality": "Weird",
-    "intent": "directions",
-    "has_book": true,
-    "is_member": false,
-    "decay": 1
+    "customers": [],
+    "customers_reading": [],
+    "customers_next_id": 1,
+    "total_members": 0
   }
 }

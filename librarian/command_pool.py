@@ -12,9 +12,9 @@ COMMAND_POOL = {
 HUNGRY_TIPS_POOL = {
     "Full" : None,
     "Okay" : None,
-    "Hungry" : "Attention, your state become hungry right now.",
-    "Starving" : "Your state is starving right now, you need to replanish your hungry bar quickly !",
-    "Collapsed" : "Your state is collapsed, you need to replenish your hungry bar as soon as possible !"
+    "Hungry" : "Attention, your state become hungry right now. Current -2 hungry per every move",
+    "Starving" : "Your state is starving right now, current -3 hungry per every move, you need to replanish your hungry bar as soon as possible !",
+    "Collapsed" : "Your state is collapsed, you can't move currently, until your hungry bar have been replanished !"
 }
 TUTORIAL_POOL = [
     ["",

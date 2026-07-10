@@ -7,7 +7,13 @@ from customers import NAME_POOL
 from customers import DIALOGUE_POOL
 from customers import GOODBYE_POOL
 
+from MapGenerator import LIBRARY, READINGAREA, BOOKSHELF
+
 import json
+
+QUEUE_POSITIONS = [(9,3), (8,3), (8,2), (8,1)]
+BOOKSHELF_INTENTS = ("borrow",)
+COUNTER_INTENTS = ()
 
 class customers_state :
 
@@ -17,6 +23,7 @@ class customers_state :
         self.personality = personality
         self.intent = intent
         self.id = id
+
         self.status = "waiting"
         self.pos = [0,0]
         self.has_book = False
@@ -26,6 +33,12 @@ class customers_state :
         self.is_member = False
         self.decay = decay
         self.tick_customer = 0
+        self.reading = False
+        self.travel_stage = 0
+        # travel stage marking down customer moving location
+        self.seat_pos = None
+        self.customer_take_book_pos = None
+        self.returning_book = False
 
     def to_dict (self) :
         return {
@@ -41,6 +54,7 @@ class customers_state :
             "has_book" : self.has_book,
             "is_member" : self.is_member,
             "decay" : self.decay,
+            "reading" : self.reading
         }
     
     @classmethod
@@ -59,6 +73,7 @@ class customers_state :
         customer.borrow_count = data["borrow_count"]
         customer.has_book = data["has_book"]  
         customer.is_member = data["is_member"]
+        customer.reading = data["reading"]
         return customer
     
     def tick_due_day(self):
@@ -77,18 +92,23 @@ class customers_state :
         if self.patience <= 0:
             self.patience = 0
             self.status = "left"
-            player.minus_score(2)
+            if self.reading == False :
+                player.minus_score(2)
 
 class customers_management :
 
     def __init__(self):
         self.customers = []
+        self.customers_reading = []
+        self.seat = self.build_reading_area(READINGAREA)
+        self.bookshelf = list(self.build_reading_area(BOOKSHELF).keys())
         self.customers_next_id = 1
         self.total_members = 0
 
     def to_dict (self) :
         return {
             "customers": [customer.to_dict() for customer in self.customers],
+            "customers_reading": [customer.to_dict() for customer in self.customers_reading],
             "customers_next_id": self.customers_next_id,
             "total_members" : self.total_members
         }
@@ -98,23 +118,139 @@ class customers_management :
         manage = cls()
         manage.customers_next_id = data["customers_next_id"]
         manage.total_members = data["total_members"]
-        manage.customers = [customers_state.from_dict(c_data) for c_data in data["customers"]]  
+        manage.customers = [customers_state.from_dict(c_data) for c_data in data["customers"]] 
+        manage.customers_reading = [customers_state.from_dict(c_data) for c_data in data["customers_reading"]] 
         return manage
+    
+    def queue_up_position (self) :
+        active = []
+        for c in self.customers :
+            if c.status == "waiting" and not c.reading :
+                active.append(c)
+
+        for i, c in enumerate(active):
+            # enumerate , take the index and their value directly
+            if i < len(QUEUE_POSITIONS):
+                c.pos = list(QUEUE_POSITIONS[i])
+
+    def build_reading_area(self, tile_type):
+        seats = {}
+        for r in range(len(LIBRARY)):
+            for c in range(len(LIBRARY[0])):
+                
+                if LIBRARY[r][c] == tile_type:
+                    seats[(r, c)] = True
+                    
+        return seats
+    
+    def check_seat(self, customer):
+        for seat, is_empty in self.seat.items() :
+            if is_empty :
+                self.seat[seat] = False
+                customer.reading = True
+                customer.pos = list(seat)
+                return True
+            # return true here mean customer found the seat
+        return False
+        # return false here mean seat is full, close it
 
     def register_customer(self, customer):
-        self.customers.append(customer)
+        if customer.intent in BOOKSHELF_INTENTS and random.random() < 0.6 and self.check_seat(customer) == True:
+            customer.seat_pos = customer.pos
+            self.customers_reading.append(customer)
+            # check go reading
 
-    def tick_all (self, player) :
+        elif customer.intent in BOOKSHELF_INTENTS :
+            customer.seat_pos = None
+            self.customers.append(customer)
+            # no go to seat reading, go to counter after grab a book
+
+        else:
+            customer.seat_pos = None
+            self.customers.append(customer)
+            self.queue_up_position()
+            # go to counter directly
+
+    def set_travelers(self, player):
+        for customer in self.customers + self.customers_reading:
+            if customer.status != "waiting":
+                continue
+
+            go_bookshelf = customer.intent in BOOKSHELF_INTENTS or customer.reading
+            # check customer's event and do their route
+
+            if customer.travel_stage == 0 and go_bookshelf:
+                customer.pos = list(random.choice(self.bookshelf))
+                customer.customer_take_book_pos = customer.pos
+                customer.travel_stage = 1
+                player.add_message(f"{customer.name} went to grab a book")
+                # for all customer borrow book or go to read book
+
+            elif customer.travel_stage == 1 and customer.reading and customer.seat_pos:
+                customer.pos = customer.seat_pos
+                customer.travel_stage = 2
+                player.add_message(f"{customer.name} went to find a seat")
+                # for customer want to reading and they are current at bookshelf
+
+            elif customer.travel_stage in (0, 1) and not customer.reading:
+                self.queue_up_position()
+                customer.travel_stage = 2
+                player.add_message(f"{customer.name} went to the counter")
+                # for normal customer but go to counter straight or current at book shelf
+                # travel_stage set for check the current direction, 0 for spawn area, 1 for go to bookshelf grab book, 2 for go to counter
+
+
+    def tick_counter_customers (self, player) :
         for customer in self.customers:
             if customer.status == "left" :
                 continue
-            # skip all the customers who left
+            # skip all the customers who already left 
 
             customer.tick_patience(player)
             if customer.status == "left" :
-                message = f"{customer.name} left the library"
-                player.add_message(message)
-            # catch the customers who just left
+                player.add_message(f"{customer.name} left the library")
+                self.queue_up_position()
+                # catch the customers who just left 
+
+                if customer.intent == "scene" :
+                    player.add_message(f"({customer.name}'s outburst startled other customers, customers are left)")
+                    for other in self.customers:
+                        if other.status == "waiting" and other.id != customer.id:
+                            other.lose_patience(1, player)
+
+                            if other.status == "left":
+                                player.add_message(f"{other.name} left the library")
+                                self.queue_up_position()
+
+                            # judge again, make sure have no single message of departure was missed or the queue was re-established a round later after scene event
+
+                # catch the customers who just left and their event is "Scene"
+
+    # catch customers who go to counter 
+    
+    def tick_reading_customers(self, player):
+        for read in self.customers_reading:
+            if read.status == "left":
+                continue
+
+            if read.patience == 1 and not read.returning_book:
+                read.pos = read.customer_take_book_pos
+                read.returning_book = True
+                player.add_message(f"{read.name} is putting the book back")
+                continue
+
+            read.tick_patience(player)
+            if read.status == "left":
+                seat = tuple(read.seat_pos)
+                if seat in self.seat:
+                    self.seat[seat] = True
+                player.add_message(f"{read.name} finished reading and left the library")
+
+    # catch customers who go to reading
+
+    def tick_all(self, player) :
+        self.tick_reading_customers(player)
+        self.tick_counter_customers(player)
 
     def tick_all_due_day (self) :
         for customer in self.customers :
@@ -242,12 +378,8 @@ class customers_management :
             message = f"{customer.name}: {line}"
             player.add_message(message)
 
-            for other in self.customers:
-                if other.status == "waiting" and other.id != customer.id:
-                    other.lose_patience(1, player)
-
             player.add_message(f"(You appease {customer.name} their patiences)")
-            score_delta -= 2
+            score_delta = 1
             
         elif event_type == "register":
             line = random.choice(DIALOGUE_POOL[customer.personality]["register"])
@@ -280,6 +412,7 @@ class customers_management :
 
         customer.status = "left" 
         player.add_message(f"{customer.name} has left")
+        self.queue_up_position()
 
         message = None
         if random.random() < 0.3 :
@@ -338,7 +471,7 @@ if __name__ == "__main__" :
     from player_state import player_state
 
     manage = customers_management()
-    player = player_state(pos=[0.0])
+    player = player_state(pos=[0,0])
     player.snack = 9
     player.score_delta = 2
 
@@ -356,52 +489,53 @@ if __name__ == "__main__" :
     c3.has_book = True
     c3.due_day = -2
 
-    count = {
-    "count1" : {},
-    "count2" : {},
-    "count3" : {}
-    }
-    for i in range(1000):
-        result = manage.spawn_random([0,0])
-        # print(f"{result.name}, {result.personality}, {result.patience}, {result.intent},{result.id}")
-        count["count1"][result.intent] = count["count1"].get(result.intent, 0) + 1
-        count["count2"][result.personality] = count["count2"].get(result.personality, 0) + 1
-        count["count3"][result.name] = count["count3"].get(result.name,0) + 1
-    print(count["count1"])
-    print(count["count2"])
-    print(count["count3"])  
+    def test1 () :
+        count = {
+        "count1" : {},
+        "count2" : {},
+        "count3" : {}
+        }
+        for i in range(1000):
+            result = manage.spawn_random([0,0])
+            # print(f"{result.name}, {result.personality}, {result.patience}, {result.intent},{result.id}")
+            count["count1"][result.intent] = count["count1"].get(result.intent, 0) + 1
+            count["count2"][result.personality] = count["count2"].get(result.personality, 0) + 1
+            count["count3"][result.name] = count["count3"].get(result.name,0) + 1
+        print(count["count1"])
+        print(count["count2"])
+        print(count["count3"])  
 
-    print("==========================================================")
+        print("==========================================================")
 
-    print(f"before is_member={c1.is_member}, total_members={manage.total_members}, snack={player.snack}")
+        print(f"before is_member={c1.is_member}, total_members={manage.total_members}, snack={player.snack}")
 
-    score = manage.resolve(c1, "register", player)
+        score = manage.resolve(c1, "register", player)
 
-    print(f"after is_member={c1.is_member}, total_members={manage.total_members}, snack={player.snack}, score_delta={score}")
-    for msg in player.flush_message():
-        print(msg)
+        print(f"after is_member={c1.is_member}, total_members={manage.total_members}, snack={player.snack}, score_delta={score}")
+        for msg in player.flush_message():
+            print(msg)
 
-    print("==========================================================")
+        print("==========================================================")
 
-    print(f"before customer_patience: {c2.patience}, customer_state: {c2.status}, score: {player.score_delta}")
-    c2.tick_patience(player)
-    print(f"before customer_patience: {c2.patience}, customer_state: {c2.status}, score: {player.score_delta}")
+        print(f"before customer_patience: {c2.patience}, customer_state: {c2.status}, score: {player.score_delta}")
+        c2.tick_patience(player)
+        print(f"before customer_patience: {c2.patience}, customer_state: {c2.status}, score: {player.score_delta}")
 
-    print("==========================================================\n")
+        print("==========================================================\n")
 
-    random.seed(1)
-    N = 10000
+        random.seed(1)
+        N = 10000
 
-    print("=== every personality independent testing scene rate ===")
-    print(f"{'personality':<10} {'Settings':<8} {'Accuary':<10} {'Times'}")
+        print("=== every personality independent testing scene rate ===")
+        print(f"{'personality':<10} {'Settings':<8} {'Accuary':<10} {'Times'}")
 
-    for personality, config in PERSONALITY_CONFIG_POOL.items():
-        scene_chance = config["scene_chance"]
-        hit_count = 0
+        for personality, config in PERSONALITY_CONFIG_POOL.items():
+            scene_chance = config["scene_chance"]
+            hit_count = 0
 
-        for i in range(N):
-            if random.random() < scene_chance:
-                hit_count += 1
+            for i in range(N):
+                if random.random() < scene_chance:
+                    hit_count += 1
 
-        actual_rate = hit_count / N
-        print(f"{personality:<10} {scene_chance:<8} {actual_rate:<10.4f} {hit_count}/{N}")
+            actual_rate = hit_count / N
+            print(f"{personality:<10} {scene_chance:<8} {actual_rate:<10.4f} {hit_count}/{N}")
