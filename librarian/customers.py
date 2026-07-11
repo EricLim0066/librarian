@@ -132,7 +132,12 @@ VIOLATION_POOL = [
     "sleeping on the table",
     "trying to put C4 bomb inside library",
     "stepping into library with left foot first",
-    "harassing the trash can"
+    "harassing the trash can",
+    "running with naking body inside library",
+    "flying the plane rapidly toward to library",
+    "trying to kidnapped other customer to Cambodia",
+    "bite player",
+    "digging a tunnel to escape library",
 ]
 
 NO_BOOK_INTENT_POOL = {
