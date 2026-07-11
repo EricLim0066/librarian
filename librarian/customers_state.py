@@ -42,6 +42,7 @@ class customers_state :
         self.customer_take_book_pos = None
         self.returning_book = False
         self.just_spawned = False
+        self.grace_ticks_remaining = 0
 
     def to_dict (self) :
         return {
@@ -100,6 +101,9 @@ class customers_state :
             self.tick_customer = 0
             if self.reading == False :
                 player.minus_score(2)
+
+    def start_grace_period(self, ticks=60):
+        self.grace_ticks_remaining = ticks
 
 class customers_management :
 
@@ -213,6 +217,10 @@ class customers_management :
 
 
     def tick_counter_customers (self, player) :
+        if self.grace_ticks_remaining > 0:
+            self.grace_ticks_remaining -= 1
+            return
+    
         for customer in self.customers:
             if customer.status == "left" :
                 continue
@@ -241,6 +249,10 @@ class customers_management :
     # catch customers who go to counter 
     
     def tick_reading_customers(self, player):
+        if self.grace_ticks_remaining > 0:
+            self.grace_ticks_remaining -= 1
+            return
+        
         for read in self.customers_reading:
             if read.status == "left":
                 continue

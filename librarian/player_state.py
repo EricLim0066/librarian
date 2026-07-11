@@ -21,6 +21,7 @@ class player_state :
         self.message_queue_up = []
         self.score_delta = 0
         self.dine_in_remaining = 0
+        self.message_log = []
  
     def to_dict (self) :
         return {
@@ -230,6 +231,8 @@ class player_state :
     def add_message (self, message) :
         if message is not None :
             self.message_queue_up.append(message)
+            self.message_log.append(message)
+            self.message_log = self.message_log[-8:]
 
     def flush_message(self) :
         message = self.message_queue_up
