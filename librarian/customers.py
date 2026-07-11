@@ -124,12 +124,24 @@ GOODBYE_POOL = {
     "Weird" :   ["I'm a fool if i come back again..", "Bye? hehe..","Bye lah, nobodys like here..,hehe.."], 
     "Angry" :   ["I WONTT COME BACKK!!","THANKSS? GET LOSTT!!","I'LL ABSOLUTELY BEAT YOUR SHIT OUTT IF I COME BACK AGAIN !!"],
 }
+
+VIOLATION_POOL = [
+    "eating in the library",
+    "breathing too loud",
+    "damaging a book",
+    "sleeping on the table",
+    "trying to put C4 bomb inside library",
+    "stepping into library with left foot first",
+    "harassing the trash can"
+]
+
 NO_BOOK_INTENT_POOL = {
     "borrow" : {"weight" : 20},
     "directions" : {"weight" : 20},
     "register" : {"weight" : 20},
     "complaint" : {"weight" : 20},
-    "purchase" : {"weight" : 20}
+    "purchase" : {"weight" : 20},
+    "fine" : {"weight" : 20},
 }
 
 HAS_BOOK_INTENT_POOL = {

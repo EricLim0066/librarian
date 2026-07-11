@@ -8,6 +8,7 @@ from customers import DIALOGUE_POOL
 from customers import GOODBYE_POOL
 
 from MapGenerator import LIBRARY, READINGAREA, BOOKSHELF
+from customers import VIOLATION_POOL
 
 import json
 
@@ -56,7 +57,8 @@ class customers_state :
             "has_book" : self.has_book,
             "is_member" : self.is_member,
             "decay" : self.decay,
-            "reading" : self.reading
+            "reading" : self.reading,
+            "status" : self.status,
         }
     
     @classmethod
@@ -76,6 +78,7 @@ class customers_state :
         customer.has_book = data["has_book"]  
         customer.is_member = data["is_member"]
         customer.reading = data["reading"]
+        customer.status = data["status"]
         return customer
     
     def tick_due_day(self):
@@ -94,6 +97,7 @@ class customers_state :
         if self.patience <= 0:
             self.patience = 0
             self.status = "left"
+            self.tick_customer = 0
             if self.reading == False :
                 player.minus_score(2)
 
@@ -256,9 +260,14 @@ class customers_management :
 
     # catch customers who go to reading
 
+    def cleanup_left_customers(self):
+        self.customers = [c for c in self.customers if not (c.status == "left" and not c.has_book)]
+        self.customers_reading = [d for d in self.customers_reading if not (d.status == "left" and not d.has_book)]
+
     def tick_all(self, player) :
         self.tick_reading_customers(player)
         self.tick_counter_customers(player)
+        self.cleanup_left_customers()
 
     def tick_all_due_day (self) :
         for customer in self.customers :
@@ -321,11 +330,16 @@ class customers_management :
         pass
     
     def event_fine_late(self, customer):
+        fine_amount = 0
         if customer.due_day < 0:
-            customer.fine_record += abs(customer.due_day) * 10
+            fine_amount = abs(customer.due_day) * 10
+            customer.fine_record += fine_amount
+        return fine_amount
 
     def event_fine_lost(self, customer):
-        customer.fine_record += 10
+        fine_amount = 10
+        customer.fine_record += fine_amount
+        return fine_amount
 
     def event_lost_book (self,customer) :
         customer.has_book = False
@@ -350,10 +364,12 @@ class customers_management :
             message = f"{customer.name}: {line}"
             player.add_message(message)
 
-            self.event_fine_lost(customer)
-            player.add_message(f"({customer.name} has paid the fine)")
+            violation = random.choice(VIOLATION_POOL)
+            score_delta = self.event_fine_lost(customer)
+            # I use ame function as fine lost
+            player.add_message(f"(You caught {customer.name} {violation}, a fine has been issued)")
             
-            score_delta = 1  
+            customer.fine_record = 0
 
         elif event_type == "lost_book":
             line = random.choice(DIALOGUE_POOL[customer.personality]["lost_book"])
@@ -361,10 +377,11 @@ class customers_management :
             player.add_message(message)
 
             self.event_lost_book(customer)
-            self.event_fine_lost(customer)
+            score_delta = self.event_fine_lost(customer)
             player.add_message(f"({customer.name} has paid the fine for losing books)")
 
-            score_delta = 1   
+            customer.fine_record = 0
+            # clear residual old data
 
         elif event_type == "return_book" :
             line = random.choice(DIALOGUE_POOL[customer.personality]["return_book"])
@@ -374,13 +391,16 @@ class customers_management :
             if not customer.due_day < 0:
                 self.event_return_book(customer)
                 player.add_message(f"({customer.name} has returned the books)")
+                score_delta = 1 
+
             else :
                 self.event_return_book(customer)
-                self.event_fine_late(customer)    
+                score_delta = self.event_fine_late(customer)    
                 player.add_message(f"({customer.name} has paid the fine for late to return books)")
 
-            score_delta = 1 
-            
+            customer.fine_record = 0
+            # clear residual old data
+
         elif event_type == "directions":
             line = random.choice(DIALOGUE_POOL[customer.personality]["directions"])
             message = f"{customer.name}: {line}"
