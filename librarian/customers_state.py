@@ -12,8 +12,7 @@ from MapGenerator import LIBRARY, READINGAREA, BOOKSHELF
 import json
 
 QUEUE_POSITIONS = [(9,3), (8,3), (8,2), (8,1)]
-BOOKSHELF_INTENTS = ("borrow",)
-COUNTER_INTENTS = ()
+BOOKSHELF_INTENTS = ("borrow","purchase")
 
 class customers_state :
 
@@ -27,6 +26,7 @@ class customers_state :
         self.status = "waiting"
         self.pos = [0,0]
         self.has_book = False
+        # to make judgment does customer borrowing the book and haven't return the book yet 
         self.borrow_count = 0
         self.fine_record = 0
         self.due_day = 0
@@ -34,11 +34,13 @@ class customers_state :
         self.decay = decay
         self.tick_customer = 0
         self.reading = False
+
         self.travel_stage = 0
         # travel stage marking down customer moving location
         self.seat_pos = None
         self.customer_take_book_pos = None
         self.returning_book = False
+        self.just_spawned = False
 
     def to_dict (self) :
         return {
@@ -175,10 +177,16 @@ class customers_management :
         for customer in self.customers + self.customers_reading:
             if customer.status != "waiting":
                 continue
+            
+            if customer.just_spawned:
+                customer.just_spawned = False
+                player.add_message(f"{customer.name} entered the library")
+                continue
+            # freeze customer 1 time, let player know customer was came in
 
             go_bookshelf = customer.intent in BOOKSHELF_INTENTS or customer.reading
             # check customer's event and do their route
-
+    
             if customer.travel_stage == 0 and go_bookshelf:
                 customer.pos = list(random.choice(self.bookshelf))
                 customer.customer_take_book_pos = customer.pos
@@ -295,8 +303,13 @@ class customers_management :
         new_customer = customers_state(random_name, patience, random_personality, self.customers_next_id, random_event,decay)
         self.customers_next_id += 1
 
-        new_customer.pos = pos
+        spawn_pos = list(pos)
+        new_customer.pos = spawn_pos
+        new_customer.just_spawned = True
+        # record and freeze the customer spawn coordinate
+
         self.register_customer(new_customer)
+        new_customer.pos = spawn_pos
         return new_customer
     
     def event_borrow_book(self,customer) :
@@ -304,6 +317,9 @@ class customers_management :
         customer.borrow_count += 1
         customer.due_day = random.randint(1,3)
 
+    def event_buy_book(self, customer) :
+        pass
+    
     def event_fine_late(self, customer):
         if customer.due_day < 0:
             customer.fine_record += abs(customer.due_day) * 10
@@ -404,6 +420,15 @@ class customers_management :
             player.add_message(f"(You settled {customer.name}'s problem)")
             score_delta = 1   
 
+        elif event_type == "purchase" :
+            line = random.choice(DIALOGUE_POOL[customer.personality]["purchase"])
+            message = f"{customer.name}: {line}"
+            player.add_message(message)
+            
+            self.event_buy_book(customer)
+            player.add_message(f"({customer.name} has bought the book)")
+            score_delta = 1   
+
         else :
             score_delta = 0    
         
@@ -461,6 +486,8 @@ class customers_management :
                 chosen.intent = back_intent 
                 chosen.status = "waiting"
                 chosen.pos = pos
+                chosen.travel_stage = 0
+                chosen.just_spawned = True
                 return chosen
                 
         return self.spawn_random(pos)

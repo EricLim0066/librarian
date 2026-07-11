@@ -334,8 +334,7 @@ if __name__ == "__main__" :
                 manage.spawn_random([10,1])
             else :
                 manage.spawn_random([10,2])
-        else :
-            return
+        
 
     while True:
         
@@ -355,4 +354,5 @@ if __name__ == "__main__" :
                 
         for message in state.flush_message() :
             print(message)
+        
 

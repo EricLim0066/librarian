@@ -31,6 +31,8 @@ DIALOGUE_POOL = {
                          "The books on that shelf are all mixed up."],
         "lost_book" :   ["I think I may have lost the book I borrowed...",
                          "I can't find the book anywhere, I'm so sorry."],
+        "purchase" :    ["Hi, I'd want to buy a book, how much ?",
+                         "I'm interest on this book, i want to buy it."]
     },
     "Happy" : {
         "borrow" :      ["YAY! I found the book I wanted! Can I borrow this please? You're the BEST!",
@@ -49,6 +51,8 @@ DIALOGUE_POOL = {
                          "The books are a bit messy over there, but no worries, I can help tidy up if you want!!"],
         "lost_book" :   ["Oh no oh no oh no... I lost the book... I'm SO sorry, I feel terrible!!",
                          "I can't find the book anywhere... I'll pay for it, I promise!! I'm so sorry!!"],
+        "purchase" :    ["Wow!! I finally found it! I'm so excited to buy this! Yeah !!",
+                         "OMG!! I love this author! I must buy it!"]
     },
 
     "Sad" : {
@@ -68,7 +72,10 @@ DIALOGUE_POOL = {
                          "The books are all mixed up... kind of like my life right now. Sorry."],
         "lost_book" :   ["I lost the book... I lose everything eventually.",
                          "It's gone. I looked everywhere. Story of my life, honestly."],
+        "purchase" :    ["I just need something comforting... Can I buy this...?",
+                         "I just... need something to ease my heart.. Wu...."]
     },
+
     "Weird" : {
         "borrow" :      ["OI! Give me the book BRUH!", 
                          "Why is this taking so long?! I want borrow the book !"],
@@ -86,6 +93,8 @@ DIALOGUE_POOL = {
                          "It's so noisy in here! Can't you control your customers?!"],
         "lost_book" :   ["Look, the book is gone. Deal with it.",
                          "I lost it, so what?! How much do I have to pay?!"],
+        "purchase" :    ["This author write like shit! hehe.., I buy it to burn!",
+                         "The only reason I'm buying book is because I pity you, hehe..."]
     },
     "Angry" : {
         "borrow" :      ["OIII!! WOT ARE YOU DOIN' MATE !!",
@@ -103,7 +112,9 @@ DIALOGUE_POOL = {
         "complaint" :   ["THISS PLACE AND YOU ALL GUYS ARE REALLY SUCKKK !!",
                          "I HATEE THIS PLACE!!"],
         "lost_book" :   ["I LOST MY BOOK THEN HOW ?!! SO YOUR REAL MEAN HUH ?!!",
-                         "I LOST THAT RUBBISH ANYMORE!! WHAT YOU GONNA DOO?!! TRY ME HUHH?!!"]
+                         "I LOST THAT RUBBISH ANYMORE!! WHAT YOU GONNA DOO?!! TRY ME HUHH?!!"],
+        "purchase" :    ["CAN'T YOU HURRY UPPP IDIOTT!!! I'M WAITING HERE TO PURCHASE THE BOOK AS MY WHOLE LIFEEE !!",
+                         "ONLY SHITT BOOK WOULD BE STOCKEDD BY SHITT CLERK !! HURRY UPP PURCHASE MY BOOK !!"]
     },
 }
 GOODBYE_POOL = {
@@ -118,6 +129,7 @@ NO_BOOK_INTENT_POOL = {
     "directions" : {"weight" : 20},
     "register" : {"weight" : 20},
     "complaint" : {"weight" : 20},
+    "purchase" : {"weight" : 20}
 }
 
 HAS_BOOK_INTENT_POOL = {
