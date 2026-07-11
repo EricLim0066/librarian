@@ -239,7 +239,7 @@ class player_state :
         self.message_queue_up = []
         return message
     
-    def print_map(self):
+    def print_map(self, manage):
         for r in range(GRID_H):
             row_str = ""
             for c in range(GRID_W):
@@ -334,9 +334,9 @@ if __name__ == "__main__" :
     def random_spawn_rate() :
         if random.random() > 0.6 :
             if random.random() > 0.5 :
-                manage.spawn_random([10,1])
+                manage.spawn_returning_rate([10,1])
             else :
-                manage.spawn_random([10,2])
+                manage.spawn_returning_rate([10,2])
         
 
     while True:

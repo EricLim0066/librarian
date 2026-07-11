@@ -3,14 +3,17 @@ from player_state import player_state
 from customers_state import customers_management
 from MapGenerator import LIBRARY, BARRIER, COUNTER, BOOKSHELF, WALKABLESPACE, ENTRANCE, BLANK, READINGAREA, STORAGEAREA, SUPPLYDROPOFF
 
+import random
+
 GRID_H = len(LIBRARY)
 GRID_W = len(LIBRARY[0])
 
-def print_map(self):
+def build_map(player, manage):
+        lines = []
         for r in range(GRID_H):
             row_str = ""
             for c in range(GRID_W):
-                if [r, c] == self.pos: 
+                if [r, c] == player.pos: 
                     row_str += " @ "
                 elif any([r, c] == cust.pos and cust.status == "waiting" for cust in manage.customers + manage.customers_reading):
                     row_str += " ^ "
@@ -33,7 +36,8 @@ def print_map(self):
                 elif LIBRARY[r][c] == SUPPLYDROPOFF :
                     row_str += " u "
 
-            print(row_str)
+            lines.append(row_str)
+        return lines
 
 def build_status_lines(player):
     return [
@@ -46,10 +50,17 @@ def build_status_lines(player):
     ]
 
 def render(player, manage):
-    map_lines = build_map_lines(player, manage)
+    map_lines = build_map(player, manage)
     status_lines = build_status_lines(player)
     for left, right in zip_longest(map_lines, status_lines, fillvalue=""):
         print(f"{left.ljust(24)} | {right}")
+
+def random_spawn_rate() :
+        if random.random() > 0.6 :
+            if random.random() > 0.5 :
+                manage.spawn_returning_rate([10,1])
+            else :
+                manage.spawn_returning_rate([10,2])
 
 if __name__ == "__main__":
     state = player_state(pos=[10, 1])
@@ -63,7 +74,7 @@ if __name__ == "__main__":
         except ValueError as e:
             print(e)
 
-        manage.spawn_returning_rate([10, 1])
+        random_spawn_rate()
         state.tick_hunger()
         state.tick_dine_in()
         manage.tick_all(state)

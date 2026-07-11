@@ -126,11 +126,11 @@ GOODBYE_POOL = {
 }
 
 VIOLATION_POOL = [
-    "eating in the library",
+    "eating in library",
     "breathing too loud",
     "damaging a book",
     "sleeping on the table",
-    "trying to put C4 bomb inside library",
+    "trying to plant C4 bomb inside library",
     "stepping into library with left foot first",
     "harassing the trash can",
     "running with naking body inside library",

@@ -42,7 +42,6 @@ class customers_state :
         self.customer_take_book_pos = None
         self.returning_book = False
         self.just_spawned = False
-        self.grace_ticks_remaining = 0
 
     def to_dict (self) :
         return {
@@ -114,6 +113,7 @@ class customers_management :
         self.bookshelf = list(self.build_reading_area(BOOKSHELF).keys())
         self.customers_next_id = 1
         self.total_members = 0
+        self.grace_ticks_remaining = 0
 
     def to_dict (self) :
         return {
