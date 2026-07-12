@@ -80,14 +80,18 @@ class menu_ui :
             choice = input("Choose: ")
 
             if choice == "1":
+
                 state = player_state(pos=[10, 1])
                 manage = customers_management()
                 ui = game_ui()
                 self.game_loop(state, manage, ui)
             elif choice == "2":
+
                 state, manage = load_game()
+                # function didn't finish
                 self.game_loop(state, manage, ui)
             elif choice == "3":
+
                 break
             else:
                 print("Invalid choice")
@@ -109,7 +113,10 @@ class menu_ui :
             manage.set_travelers(state)
 
             if day_end:
+                # function didn't finish
+
                 end_of_day_menu(state, manage)   
+                # function didn't finish
 
     def end_of_day_menu(self, state, manage):
         print("Day complete!")
@@ -121,6 +128,8 @@ class menu_ui :
 
         if choice in ("2", "3"):
             save_game(state, manage)
+            # function didn't finish
+            
         if choice in ("3", "4"):
             return "quit"   
         return "continue"
