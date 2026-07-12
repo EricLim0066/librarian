@@ -5,6 +5,7 @@ from MapGenerator import LIBRARY, BARRIER, COUNTER, BOOKSHELF, WALKABLESPACE, EN
 
 import random
 import os
+import json
 
 GRID_H = len(LIBRARY)
 GRID_W = len(LIBRARY[0])
@@ -52,7 +53,7 @@ class game_ui :
             f"Last input: {player.last_command}",
             "-" * 20,
             "Log:",
-            *player.message_log,
+            * [m for m, t in player.message_log],
         ]
 
     def render(self, player, manage):
@@ -87,7 +88,7 @@ class menu_ui :
                 self.game_loop(state, manage, ui)
             elif choice == "2":
 
-                state, manage = load_game()
+                state, manage = self.load_game()
                 # function didn't finish
                 self.game_loop(state, manage, ui)
             elif choice == "3":
@@ -101,6 +102,7 @@ class menu_ui :
             os.system("cls" if os.name == "nt" else "clear")
             ui.render(state, manage)
             user_input = input("Enter an action (Input '?' or 'help' to view command list): ")
+            state.clear_goodbye()
             try:
                 state.execute_command(user_input, manage)
             except ValueError as e:
@@ -126,29 +128,30 @@ class menu_ui :
         choice = input("Choose: ")
 
         if choice in ("2", "3"):
-            save_game(state, manage)
+            self.save_game(state, manage)
             # function didn't finish
 
         if choice in ("3", "4"):
             return "quit"   
         return "continue"
 
+
+    def save_game(state, manage, filename="save.json"):
+        save_data = {
+            "player": state.to_dict(),
+            "manage": manage.to_dict(),
+        }
+        with open(filename, "w") as f:
+            json.dump(save_data, f, indent=2)
+
+    def load_game(filename="save.json"):
+        with open(filename, "r") as f:
+            data = json.load(f)
+        state = player_state.from_dict(data["player"])
+        manage = customers_management.from_dict(data["manage"])
+        return state, manage
+
 if __name__ == "__main__":
     state = player_state(pos=[10, 1])
     manage = customers_management()
     ui = game_ui()
-
-    while True:
-        os.system("cls" if os.name == "nt" else "clear")
-        ui.render(state, manage)
-        user_input = input("Enter an action (Input '?' or 'help' to view command list): ")
-        try:
-            state.execute_command(user_input, manage)
-        except ValueError as e:
-            print(e)
-
-        ui.random_spawn_rate()
-        state.tick_hunger()
-        state.tick_dine_in()
-        manage.tick_all(state)
-        manage.set_travelers(state)

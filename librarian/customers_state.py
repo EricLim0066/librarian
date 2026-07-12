@@ -465,10 +465,10 @@ class customers_management :
             score_delta = 0    
         
         goodbye = random.choice(GOODBYE_POOL[customer.personality])
-        player.add_message(f"{customer.name}: {goodbye}")
+        player.add_message(f"{customer.name}: {goodbye}", tag="goodbye")
 
         customer.status = "left" 
-        player.add_message(f"{customer.name} has left")
+        player.add_message(f"{customer.name} has left", tag="goodbye")
         self.queue_up_position()
 
         message = None
@@ -479,7 +479,7 @@ class customers_management :
             else :
                 message = "Your snack pouch is already full (max 10)"
                 
-            player.add_message(message)       
+            player.add_message(message, tag="goodbye")       
         return score_delta
     
     def get_returning_pool (self) :

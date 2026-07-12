@@ -235,7 +235,7 @@ class player_state :
     def add_message (self, message) :
         if message is not None :
             self.message_queue_up.append(message)
-            self.message_log.append(message)
+            self.message_log.append((message, tag))
             self.message_log = self.message_log[-6:]
 
     def flush_message(self) :
@@ -243,6 +243,9 @@ class player_state :
         self.message_queue_up = []
         return message
     
+    def clear_goodbye(self):
+        self.message_log = [(m, t) for m, t in self.message_log if t != "goodbye"]
+
     def print_map(self, manage):
         for r in range(GRID_H):
             row_str = ""
@@ -312,10 +315,9 @@ if __name__ == "__main__" :
         print(f"after customer due_day={new_customer.due_day}, has_book={new_customer.has_book}")
     
     def test2() :
-        # ===== 测试 reading/seat 分流机制 =====
         print("=== testing seat ===")
 
-        manage.seat = {(1,1): True, (2,1): True, (3,1): True}  # 确保是3个座位，方便测试塞满
+        manage.seat = {(1,1): True, (2,1): True, (3,1): True}
 
         test_customers = []
         for i in range(5):
