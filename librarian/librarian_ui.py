@@ -68,9 +68,10 @@ class game_ui :
                 lines.append(row_str)
             return lines
 
-    def build_status_lines(self, player, manage):
+    def build_status_lines(self, player, manage, clock):
         waiting = [c for c in manage.customers if c.status == "waiting"]
         return [
+            f"Day {clock.current_day}/{clock.total_days}  |  Time: {clock.format_time()}",
             f"Hunger: {player.stage} ({player.hungry})",
             f"Snack: {player.snack}",
             f"Score: {player.score_delta}",
@@ -82,9 +83,9 @@ class game_ui :
             * [m for m, t in player.message_log],
         ]
 
-    def render(self, player, manage):
+    def render(self, player, manage, clock):
         map_lines = self.build_map(player, manage)
-        status_lines = self.build_status_lines(player, manage)
+        status_lines = self.build_status_lines(player, manage, clock)
         for left, right in zip_longest(map_lines, status_lines, fillvalue=""):
             print(f"{left.ljust(24)} | {right}")
 
@@ -134,7 +135,7 @@ class menu_ui :
 
         while True:
             os.system("cls" if os.name == "nt" else "clear")
-            ui.render(state, manage)
+            ui.render(state, manage, clock)
             user_input = input("Enter an action (Input '?' or 'help' to view command list): ")
             state.clear_goodbye()
             try:
@@ -143,7 +144,7 @@ class menu_ui :
                 print(e)
 
             clock.advance() 
-            ui.random_spawn_rate()
+            ui.random_spawn_rate(manage)
             state.tick_hunger()
             state.tick_dine_in()
             manage.tick_all(state)
