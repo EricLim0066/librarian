@@ -1,0 +1,16 @@
+{
+  "player": {
+    "pos": [
+      2,
+      1
+    ],
+    "snack": 5,
+    "score_delta": 10
+  },
+  "customer": {
+    "customers": [],
+    "customers_reading": [],
+    "customers_next_id": 1,
+    "total_members": 0
+  }
+}

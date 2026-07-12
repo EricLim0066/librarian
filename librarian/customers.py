@@ -20,7 +20,7 @@ DIALOGUE_POOL = {
         "return_book" : ["I'd like to return this book, thank you.",
                          "Here's the book I borrowed last week."],
         "fine" :        ["Oh, I have an overdue fine? How much is it?",
-                         "Sorry, I forgot to return it on time."],
+                         "Sorry, i'll pay the fine."],
         "directions" :  ["Excuse me, where is the toilet?",
                          "Can you tell me where the reference section is?"],
         "scene" :       ["I've been waiting for so long!",

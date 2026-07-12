@@ -22,6 +22,7 @@ class player_state :
         self.score_delta = 0
         self.dine_in_remaining = 0
         self.message_log = []
+        self.last_command = None
  
     def to_dict (self) :
         return {
@@ -179,6 +180,8 @@ class player_state :
         message = None
         
         command = self.parse_command(command)
+        self.last_command = command
+
         if command in move_comp:
             self.move(command)
 
@@ -210,15 +213,16 @@ class player_state :
         elif command == system_comp[3]:
             for cmd, description in COMMAND_POOL.items():
                 message = f"{cmd:<8} - {description}"
-                self.add_message(message)
+                print(message)
+            print("_" * 30)
             return
         
         elif command == system_comp[4]:
             for tutorial in TUTORIAL_POOL : 
                 for line in tutorial :
-                    message = line
-                    self.add_message(message)
-                self.add_message("_" * 30)
+                    print(line)
+                print("_" * 30)
+            return
                 
         else :
             message ="This command isn't implemented yet"
@@ -232,7 +236,7 @@ class player_state :
         if message is not None :
             self.message_queue_up.append(message)
             self.message_log.append(message)
-            self.message_log = self.message_log[-8:]
+            self.message_log = self.message_log[-6:]
 
     def flush_message(self) :
         message = self.message_queue_up
@@ -341,7 +345,7 @@ if __name__ == "__main__" :
 
     while True:
         
-        state.print_map()
+        state.print_map(manage)
         user_input = input("Please enter command: ")
         try:
             print(f"player hungry state= {state.stage}, player hungry bar = {state.hungry}")

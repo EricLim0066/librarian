@@ -46,4 +46,10 @@ TUTORIAL_POOL = [
      f"repeat customers — there's a 20% chance of back to library, usually return books",
      "Customers with different personalites have different patience, please handle as soon as possible",
      ""],
+
+     ["~MAP SYMBOLS~",
+      "@ You    ^ Customer    # Wall    . Walkable",
+      "$ Entrance    C Counter    B Bookshelf",
+      "r Reading area    S Storage    u Supply dropoff",
+      ""],
 ]
