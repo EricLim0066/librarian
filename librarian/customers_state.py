@@ -35,6 +35,7 @@ class customers_state :
         self.due_day = 0
         self.is_member = False
         self.decay = decay
+        # decay, the loop of patience
         self.tick_customer = 0
         self.reading = False
 
@@ -42,8 +43,14 @@ class customers_state :
         # travel stage marking down customer moving location
         self.seat_pos = None
         self.customer_take_book_pos = None
+
         self.returning_book = False
         self.just_spawned = False
+
+        self.borrowed_book = None
+        # record what book customer borrowed
+        self.bought_book = None
+        # record what book customer bought
 
     def to_dict (self) :
         return {
@@ -61,6 +68,8 @@ class customers_state :
             "decay" : self.decay,
             "reading" : self.reading,
             "status" : self.status,
+            "borrowed_book": self.borrowed_book,
+            "bought_book" : self.bought_book,
         }
     
     @classmethod
@@ -81,6 +90,9 @@ class customers_state :
         customer.is_member = data["is_member"]
         customer.reading = data["reading"]
         customer.status = data["status"]
+        customer.borrowed_book = data["borrowed_book"]
+        customer.bought_book = data["bought_book"]
+
         return customer
     
     def tick_due_day(self):
@@ -350,15 +362,6 @@ class customers_management :
             return None
         return random.choice(unavailable)
     
-    def borrow_book_from_shelf(self, shelf):
-        book = self.bookshelf_books.get(shelf)
-        if book and book["available"]:
-            book["available"] = False
-            book["borrow_count"] += 1
-            return True
-        
-        return False
-    
     def take_book_from_shelf(self, shelf):
         book = self.bookshelf_books.get(shelf)
         if book and book["available"]:
@@ -378,11 +381,12 @@ class customers_management :
         shelf = self.get_random_available_book()
         if shelf is None:
             return False
-        self.borrow_book_from_shelf(shelf)
+        self.take_book_from_shelf(shelf)
 
         customer.has_book = True
         customer.borrow_count += 1
         customer.due_day = random.randint(1,3)
+        customer.borrowed_shelf = shelf
         return True
 
     def event_buy_book(self, customer) :
@@ -390,6 +394,7 @@ class customers_management :
         if shelf is None:
             return False
         self.take_book_from_shelf(shelf)
+        customer.bought_shelf = shelf
 
         return True
     
@@ -407,12 +412,13 @@ class customers_management :
 
     def event_lost_book (self,customer) :
         customer.has_book = False
+        customer.borrowed_shelf = None
 
     def event_return_book (self, customer) :
         customer.has_book = False
-        shelf = self.get_random_unavailable_book()
-        if shelf is not None:
-            self.restock_book(shelf)
+        if customer.borrowed_shelf is not None:
+            self.restock_book(customer.borrowed_shelf)
+        customer.borrowed_shelf = None
 
     def resolve(self, customer, event_type, player):
 
