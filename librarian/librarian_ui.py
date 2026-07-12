@@ -115,8 +115,7 @@ class menu_ui :
             if day_end:
                 # function didn't finish
 
-                end_of_day_menu(state, manage)   
-                # function didn't finish
+                self.end_of_day_menu(state, manage)   
 
     def end_of_day_menu(self, state, manage):
         print("Day complete!")
@@ -129,7 +128,7 @@ class menu_ui :
         if choice in ("2", "3"):
             save_game(state, manage)
             # function didn't finish
-            
+
         if choice in ("3", "4"):
             return "quit"   
         return "continue"
