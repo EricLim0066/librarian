@@ -9,7 +9,9 @@ from customers import GOODBYE_POOL
 
 from MapGenerator import LIBRARY, READINGAREA, BOOKSHELF
 from customers import VIOLATION_POOL
+from environment_system import DEFAULT_BOOKSHELF
 
+import copy
 import json
 
 QUEUE_POSITIONS = [(9,3), (8,3), (8,2), (8,1)]
@@ -114,13 +116,15 @@ class customers_management :
         self.customers_next_id = 1
         self.total_members = 0
         self.grace_ticks_remaining = 0
+        self.bookshelf_books = copy.deepcopy(DEFAULT_BOOKSHELF)
 
     def to_dict (self) :
         return {
             "customers": [customer.to_dict() for customer in self.customers],
             "customers_reading": [customer.to_dict() for customer in self.customers_reading],
             "customers_next_id": self.customers_next_id,
-            "total_members" : self.total_members
+            "total_members" : self.total_members,
+            "bookshelf_books" : self.bookshelf_books
         }
     
     @classmethod
@@ -130,6 +134,7 @@ class customers_management :
         manage.total_members = data["total_members"]
         manage.customers = [customers_state.from_dict(c_data) for c_data in data["customers"]] 
         manage.customers_reading = [customers_state.from_dict(c_data) for c_data in data["customers_reading"]] 
+        manage.bookshelf_books = data["bookshelf_books"]
         return manage
     
     def queue_up_position (self) :
@@ -333,13 +338,60 @@ class customers_management :
         new_customer.pos = spawn_pos
         return new_customer
     
-    def event_borrow_book(self,customer) :
+    def get_random_available_book(self):
+        available = [shelf for shelf, book in self.bookshelf_books.items() if book["available"]]
+        if not available:
+            return None
+        return random.choice(available)
+    
+    def get_random_unavailable_book(self):
+        unavailable = [shelf for shelf, book in self.bookshelf_books.items() if not book["available"]]
+        if not unavailable:
+            return None
+        return random.choice(unavailable)
+    
+    def borrow_book_from_shelf(self, shelf):
+        book = self.bookshelf_books.get(shelf)
+        if book and book["available"]:
+            book["available"] = False
+            book["borrow_count"] += 1
+            return True
+        
+        return False
+    
+    def take_book_from_shelf(self, shelf):
+        book = self.bookshelf_books.get(shelf)
+        if book and book["available"]:
+            book["available"] = False
+            book["borrow_count"] += 1
+            return True
+        return False
+
+    def restock_book(self, shelf):
+        book = self.bookshelf_books.get(shelf)
+        if book:
+            book["available"] = True
+            return True
+        return False
+    
+    def event_borrow_book(self, customer):
+        shelf = self.get_random_available_book()
+        if shelf is None:
+            return False
+        self.borrow_book_from_shelf(shelf)
+
         customer.has_book = True
         customer.borrow_count += 1
         customer.due_day = random.randint(1,3)
+        return True
 
     def event_buy_book(self, customer) :
-        pass
+        shelf = self.get_random_available_book()
+        if shelf is None:
+            return False
+        self.take_book_from_shelf(shelf)
+
+        return True
     
     def event_fine_late(self, customer):
         fine_amount = 0
@@ -357,7 +409,10 @@ class customers_management :
         customer.has_book = False
 
     def event_return_book (self, customer) :
-        customer.has_book = False    
+        customer.has_book = False
+        shelf = self.get_random_unavailable_book()
+        if shelf is not None:
+            self.restock_book(shelf)
 
     def resolve(self, customer, event_type, player):
 

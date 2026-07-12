@@ -98,6 +98,7 @@ class menu_ui :
                 print("Invalid choice")
 
     def game_loop(self, state, manage, ui):
+        
         while True:
             os.system("cls" if os.name == "nt" else "clear")
             ui.render(state, manage)
