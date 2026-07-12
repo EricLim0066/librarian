@@ -2,6 +2,7 @@ from itertools import zip_longest
 from player_state import player_state
 from customers_state import customers_management
 from MapGenerator import LIBRARY, BARRIER, COUNTER, BOOKSHELF, WALKABLESPACE, ENTRANCE, BLANK, READINGAREA, STORAGEAREA, SUPPLYDROPOFF
+from environment_system import WEATHER_CONFIG
 
 import random
 import os
@@ -49,6 +50,7 @@ class game_ui :
             f"Hunger: {player.stage} ({player.hungry})",
             f"Snack: {player.snack}",
             f"Score: {player.score_delta}",
+            f"Weather: {manage.weather}"
             f"Waiting at counter: {len(waiting)} ({', '.join(c.name for c in waiting)})",
             f"Last input: {player.last_command}",
             "-" * 20,
@@ -63,7 +65,12 @@ class game_ui :
             print(f"{left.ljust(24)} | {right}")
 
     def random_spawn_rate(self) :
-            if random.random() > 0.6 :
+        if manage.library_closed:
+            return   
+        base_rate = 0.4
+        rate = base_rate * (WEATHER_CONFIG[manage.weather]["customer_rate"] + manage.customer_event_bonus)
+        if random.random() < rate:
+            if random.random() < rate:
                 if random.random() > 0.5 :
                     manage.spawn_returning_rate([10,1])
                 else :
@@ -98,7 +105,7 @@ class menu_ui :
                 print("Invalid choice")
 
     def game_loop(self, state, manage, ui):
-        
+
         while True:
             os.system("cls" if os.name == "nt" else "clear")
             ui.render(state, manage)

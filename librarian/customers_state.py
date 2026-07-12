@@ -9,6 +9,8 @@ from customers import GOODBYE_POOL
 
 from MapGenerator import LIBRARY, READINGAREA, BOOKSHELF
 from customers import VIOLATION_POOL
+from environment_system import EVENT_POOL, EVENT_EFFECT
+from environment_system import WEATHER_CONFIG, WEATHER_LIST
 from environment_system import DEFAULT_BOOKSHELF
 
 import copy
@@ -16,6 +18,9 @@ import json
 
 QUEUE_POSITIONS = [(9,3), (8,3), (8,2), (8,1)]
 BOOKSHELF_INTENTS = ("borrow","purchase")
+
+def generate_weather():
+    return random.choice(WEATHER_LIST)
 
 class customers_state :
 
@@ -51,6 +56,7 @@ class customers_state :
         # record what book customer borrowed
         self.bought_book = None
         # record what book customer bought
+        
 
     def to_dict (self) :
         return {
@@ -118,6 +124,12 @@ class customers_state :
     def start_grace_period(self, ticks=60):
         self.grace_ticks_remaining = ticks
 
+    def generate_event(weather):
+        events = EVENT_POOL.get(weather, EVENT_POOL["Cloudy"])
+        names = [name for name, weight in events]
+        weights = [weight for name, weight in events]
+        return random.choices(names, weights=weights)[0]
+    
 class customers_management :
 
     def __init__(self):
@@ -129,6 +141,12 @@ class customers_management :
         self.total_members = 0
         self.grace_ticks_remaining = 0
         self.bookshelf_books = copy.deepcopy(DEFAULT_BOOKSHELF)
+        self.weather = "Cloudy"
+        self.customer_event_bonus = 0
+        self.library_closed = False
+        self.skip_day = True
+        self.memory_log = []
+        self.current_day = 1
 
     def to_dict (self) :
         return {
@@ -136,7 +154,14 @@ class customers_management :
             "customers_reading": [customer.to_dict() for customer in self.customers_reading],
             "customers_next_id": self.customers_next_id,
             "total_members" : self.total_members,
-            "bookshelf_books" : self.bookshelf_books
+            "bookshelf_books" : self.bookshelf_books,
+            "weather": self.weather,
+            "customer_event_bonus": self.customer_event_bonus,
+            "library_closed": self.library_closed,
+            "skip_day": self.skip_day,
+            "memory_log" : self.memory_log,
+            "current_day" : self.current_day
+
         }
     
     @classmethod
@@ -147,6 +172,13 @@ class customers_management :
         manage.customers = [customers_state.from_dict(c_data) for c_data in data["customers"]] 
         manage.customers_reading = [customers_state.from_dict(c_data) for c_data in data["customers_reading"]] 
         manage.bookshelf_books = data["bookshelf_books"]
+        manage.weather = data["weather"]
+        manage.customer_event_bonus = data["customer_event_bonus"]
+        manage.library_closed = data["library_closed"]
+        manage.skip_day = data["skip_day"]
+        manage.memory_log = data["memory_log"]
+        manage.current_day = data["current_day"]
+
         return manage
     
     def queue_up_position (self) :
@@ -530,6 +562,7 @@ class customers_management :
 
         customer.status = "left" 
         player.add_message(f"{customer.name} has left", tag="goodbye")
+        self.add_memory(f"{customer.name} left after {event_type}")
         self.queue_up_position()
 
         message = None
@@ -586,6 +619,33 @@ class customers_management :
         return self.spawn_random(pos)
         # the other 0.8 rate
 
+    def next_day_weather(self):
+        self.weather = generate_weather()
+        self.add_memory(f"Weather changed to {self.weather}")
+
+    def apply_event_effect(self, player, event):
+        effect = EVENT_EFFECT[event]
+
+        if effect["type"] == "score":
+            if effect["value"] >= 0:
+                player.score_delta += effect["value"]
+            else:
+                player.minus_score(abs(effect["value"]))
+
+        elif effect["type"] == "customer_bonus":
+            self.customer_event_bonus = effect["value"]
+
+        elif effect["type"] == "closure":
+            self.library_closed = True
+            self.skip_day = True
+
+        self.add_memory(f"Weather event: {event}")
+        return effect
+    
+    def add_memory(self, message):
+        self.memory_log.append({"day": self.current_day, "message": message})
+        if len(self.memory_log) > 50:
+            self.memory_log.pop(0)
 
 if __name__ == "__main__" :
     from player_state import player_state

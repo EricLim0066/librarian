@@ -232,7 +232,7 @@ class player_state :
     def get_score(self):
         return self.score_delta
         
-    def add_message (self, message) :
+    def add_message (self, message, tag=None) :
         if message is not None :
             self.message_queue_up.append(message)
             self.message_log.append((message, tag))

@@ -221,6 +221,23 @@ DEFAULT_BOOKSHELF = {
 
 }
 
+EVENT_POOL = {
+    "Sunny": [("VIP Visitor", 30), ("Library Promotion", 70)],
+    "Rainy": [("Quiet Reading Day", 60), ("More Customers", 40)],
+    "Cloudy": [("Normal Day", 100)],
+    "Storm": [("Power Outage", 30), ("Emergency Closure", 70)],
+}
+
+EVENT_EFFECT = {
+    "VIP Visitor": {"type": "score", "value": 5},
+    "Library Promotion": {"type": "customer_bonus", "value": 0.3},
+    "Quiet Reading Day": {"type": "score", "value": 1},
+    "More Customers": {"type": "customer_bonus", "value": 0.3},
+    "Normal Day": {"type": "none", "value": 0},
+    "Power Outage": {"type": "score", "value": -2},
+    "Emergency Closure": {"type": "closure", "value": True},
+}
+
 # =====================================================
 # WEATHER UPDATE
 # =====================================================
