@@ -22,6 +22,12 @@ BOOKSHELF_INTENTS = ("borrow","purchase")
 def generate_weather():
     return random.choice(WEATHER_LIST)
 
+def generate_event(weather):
+        events = EVENT_POOL.get(weather, EVENT_POOL["Cloudy"])
+        names = [name for name, weight in events]
+        weights = [weight for name, weight in events]
+        return random.choices(names, weights=weights)[0]
+
 class customers_state :
 
     def __init__(self, name, patience, personality,id,intent,decay):
@@ -123,12 +129,6 @@ class customers_state :
 
     def start_grace_period(self, ticks=60):
         self.grace_ticks_remaining = ticks
-
-    def generate_event(weather):
-        events = EVENT_POOL.get(weather, EVENT_POOL["Cloudy"])
-        names = [name for name, weight in events]
-        weights = [weight for name, weight in events]
-        return random.choices(names, weights=weights)[0]
     
 class customers_management :
 
@@ -144,7 +144,7 @@ class customers_management :
         self.weather = "Cloudy"
         self.customer_event_bonus = 0
         self.library_closed = False
-        self.skip_day = True
+        self.skip_day = False
         self.memory_log = []
         self.current_day = 1
 
@@ -418,7 +418,7 @@ class customers_management :
         customer.has_book = True
         customer.borrow_count += 1
         customer.due_day = random.randint(1,3)
-        customer.borrowed_shelf = shelf
+        customer.borrowed_book = shelf
         return True
 
     def event_buy_book(self, customer) :
@@ -426,7 +426,7 @@ class customers_management :
         if shelf is None:
             return False
         self.take_book_from_shelf(shelf)
-        customer.bought_shelf = shelf
+        customer.bought_book = shelf
 
         return True
     
@@ -444,13 +444,13 @@ class customers_management :
 
     def event_lost_book (self,customer) :
         customer.has_book = False
-        customer.borrowed_shelf = None
+        customer.borrowed_book = None
 
     def event_return_book (self, customer) :
         customer.has_book = False
-        if customer.borrowed_shelf is not None:
-            self.restock_book(customer.borrowed_shelf)
-        customer.borrowed_shelf = None
+        if customer.borrowed_book is not None:
+            self.restock_book(customer.borrowed_book)
+        customer.borrowed_book = None
 
     def resolve(self, customer, event_type, player):
 
@@ -575,7 +575,7 @@ class customers_management :
                 
             player.add_message(message, tag="goodbye")       
         return score_delta
-    
+
     def get_returning_pool (self) :
         pool = []
         weights = []
@@ -646,6 +646,21 @@ class customers_management :
         self.memory_log.append({"day": self.current_day, "message": message})
         if len(self.memory_log) > 50:
             self.memory_log.pop(0)
+
+    def force_clear_customers(self, player):
+        for customer in self.customers + self.customers_reading:
+            if customer.status == "waiting":
+                customer.status = "left"
+                player.add_message(f"({customer.name} was asked to leave, the library is closing)")
+
+        for customer in self.customers_reading:
+            if customer.seat_pos:
+                seat = tuple(customer.seat_pos)
+                if seat in self.seat:
+                    self.seat[seat] = True
+
+        self.queue_up_position()
+        self.cleanup_left_customers()
 
 if __name__ == "__main__" :
     from player_state import player_state

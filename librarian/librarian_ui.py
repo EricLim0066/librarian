@@ -11,6 +11,30 @@ import json
 GRID_H = len(LIBRARY)
 GRID_W = len(LIBRARY[0])
 
+class game_clock:
+    def __init__(self):
+        self.current_day = 1
+        self.total_days = 7
+        self.current_time = 13 * 60
+        self.end_time = 18 * 60
+        self.minutes_per_action = 1
+
+    def advance(self):
+        self.current_time += self.minutes_per_action
+
+    def is_day_over(self):
+        return self.current_time >= self.end_time
+
+    def format_time(self):
+        h, m = divmod(self.current_time, 60)
+        return f"{h:02d}:{m:02d}"
+
+    def reset_time(self):
+        self.current_time = 13 * 60
+
+    def is_game_over(self):
+        return self.current_day > self.total_days
+
 class game_ui :
 
     def build_map(self, player, manage):
@@ -50,7 +74,7 @@ class game_ui :
             f"Hunger: {player.stage} ({player.hungry})",
             f"Snack: {player.snack}",
             f"Score: {player.score_delta}",
-            f"Weather: {manage.weather}"
+            f"Weather: {manage.weather}",
             f"Waiting at counter: {len(waiting)} ({', '.join(c.name for c in waiting)})",
             f"Last input: {player.last_command}",
             "-" * 20,
@@ -64,7 +88,7 @@ class game_ui :
         for left, right in zip_longest(map_lines, status_lines, fillvalue=""):
             print(f"{left.ljust(24)} | {right}")
 
-    def random_spawn_rate(self) :
+    def random_spawn_rate(self, manage) :
         if manage.library_closed:
             return   
         base_rate = 0.4
@@ -88,23 +112,25 @@ class menu_ui :
             choice = input("Choose: ")
 
             if choice == "1":
-
                 state = player_state(pos=[10, 1])
                 manage = customers_management()
                 ui = game_ui()
-                self.game_loop(state, manage, ui)
-            elif choice == "2":
+                clock = game_clock()
+                self.game_loop(state, manage, ui, clock)
 
+            elif choice == "2":
                 state, manage = self.load_game()
-                # function didn't finish
-                self.game_loop(state, manage, ui)
+                ui = game_ui()
+                clock = game_clock()
+                self.game_loop(state, manage, ui, clock)
+
             elif choice == "3":
 
                 break
             else:
                 print("Invalid choice")
 
-    def game_loop(self, state, manage, ui):
+    def game_loop(self, state, manage, ui, clock):
 
         while True:
             os.system("cls" if os.name == "nt" else "clear")
@@ -116,16 +142,29 @@ class menu_ui :
             except ValueError as e:
                 print(e)
 
+            clock.advance() 
             ui.random_spawn_rate()
             state.tick_hunger()
             state.tick_dine_in()
             manage.tick_all(state)
             manage.set_travelers(state)
+            state.flush_message()
 
-            if day_end:
-                # function didn't finish
+            if clock.is_day_over():
+                manage.force_clear_customers(state)
+                result = self.end_of_day_menu(state, manage)
+                clock.current_day += 1
 
-                self.end_of_day_menu(state, manage)   
+                if clock.is_game_over():
+                    self.show_final_results(state, manage)
+                    return
+
+                if result == "quit":
+                    return
+
+                manage.library_closed = False
+                manage.customer_event_bonus = 0
+                manage.skip_day = False  
 
     def end_of_day_menu(self, state, manage):
         print("Day complete!")
@@ -143,8 +182,15 @@ class menu_ui :
             return "quit"   
         return "continue"
 
+    def show_final_results(self, player, manage):
+        print("=" * 30)
+        print("7 DAYS COMPLETE - GAME OVER")
+        print("=" * 30)
+        print(f"Final Score: {player.score_delta}")
+        print(f"Members Registered: {manage.total_members}")
 
-    def save_game(state, manage, filename="save.json"):
+    def save_game(self, state, manage, filename="save.json"):
+
         save_data = {
             "player": state.to_dict(),
             "manage": manage.to_dict(),
@@ -152,7 +198,8 @@ class menu_ui :
         with open(filename, "w") as f:
             json.dump(save_data, f, indent=2)
 
-    def load_game(filename="save.json"):
+    def load_game(self, filename="save.json"):
+
         with open(filename, "r") as f:
             data = json.load(f)
         state = player_state.from_dict(data["player"])
@@ -163,3 +210,5 @@ if __name__ == "__main__":
     state = player_state(pos=[10, 1])
     manage = customers_management()
     ui = game_ui()
+    clock = game_clock()
+    menu_ui().main_menu()
