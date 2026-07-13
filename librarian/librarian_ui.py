@@ -120,7 +120,10 @@ class menu_ui :
                 self.game_loop(state, manage, ui, clock)
 
             elif choice == "2":
-                state, manage = self.load_game()
+                result = self.load_game()
+                if result is None:
+                    continue
+                state, manage = result
                 ui = game_ui()
                 clock = game_clock()
                 self.game_loop(state, manage, ui, clock)
@@ -147,6 +150,8 @@ class menu_ui :
             ui.random_spawn_rate(manage)
             state.tick_hunger()
             state.tick_dine_in()
+            extra_time = state.tick_dine_in()
+            clock.current_time += extra_time
             manage.tick_all(state)
             manage.set_travelers(state)
             state.flush_message()
@@ -166,6 +171,7 @@ class menu_ui :
                 manage.library_closed = False
                 manage.customer_event_bonus = 0
                 manage.skip_day = False  
+                state.dine_in_count = 0
 
     def end_of_day_menu(self, state, manage):
         print("Day complete!")
@@ -177,7 +183,6 @@ class menu_ui :
 
         if choice in ("2", "3"):
             self.save_game(state, manage)
-            # function didn't finish
 
         if choice in ("3", "4"):
             return "quit"   
@@ -200,11 +205,23 @@ class menu_ui :
             json.dump(save_data, f, indent=2)
 
     def load_game(self, filename="save.json"):
+        try:
+            with open(filename, "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            print("No save file found.")
+            return None
+        except json.JSONDecodeError:
+            print("Save file is corrupted.")
+            return None
 
-        with open(filename, "r") as f:
-            data = json.load(f)
-        state = player_state.from_dict(data["player"])
-        manage = customers_management.from_dict(data["manage"])
+        try:
+            state = player_state.from_dict(data["player"])
+            manage = customers_management.from_dict(data["manage"])
+        except KeyError as e:
+            print(f"Save file is missing data: {e}")
+            return None
+
         return state, manage
 
 if __name__ == "__main__":

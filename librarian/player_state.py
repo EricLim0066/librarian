@@ -21,6 +21,9 @@ class player_state :
         self.message_queue_up = []
         self.score_delta = 0
         self.dine_in_remaining = 0
+        self.dine_in_count = 0
+        self.dine_in_limit = 3
+        self.pretty = 3
         self.message_log = []
         self.last_command = None
  
@@ -133,8 +136,13 @@ class player_state :
             self.score_delta = 0
 
     def start_dine_in (self) :
+        if self.dine_in_count >= self.dine_in_limit:
+            self.add_message("You've reached today's dine-in limit, no more meals until tomorrow")
+            return
+        
         self.dine_in = True
         self.dine_in_remaining = 2
+        self.dine_in_count += 1
         self.eating(75)
 
         message = f"Eating... cannot move for 2 times"
@@ -142,11 +150,14 @@ class player_state :
 
 
     def tick_dine_in (self) :
-
+        extra_time = 0
         if self.dine_in :
             self.dine_in_remaining -= 1
             if self.dine_in_remaining <= 0 :
                 self.finish_dine_in()
+                extra_time += 30
+        
+        return extra_time
 
     def eat_snack(self):
         message = None
@@ -215,6 +226,7 @@ class player_state :
                 message = f"{cmd:<8} - {description}"
                 print(message)
             print("_" * 30)
+            input("\nPress Enter to continue...")
             return
         
         elif command == system_comp[4]:
@@ -222,6 +234,8 @@ class player_state :
                 for line in tutorial :
                     print(line)
                 print("_" * 30)
+
+            input("\nPress Enter to continue...")
             return
                 
         else :
@@ -280,6 +294,8 @@ class player_state :
 if __name__ == "__main__" :
     from customers_state import customers_management
     from customers_state import customers_state
+    from librarian_ui import game_clock
+
     import random
 
     state = player_state(pos=[2,1])
@@ -287,6 +303,7 @@ if __name__ == "__main__" :
     state.score_delta = 10
 
     manage = customers_management()
+    clock = game_clock()
     # c = manage.spawn_random(pos=[1,1])
     # d1 = manage.spawn_random(pos=[3,1])
     # f1 = manage.spawn_random(pos=[3,3])

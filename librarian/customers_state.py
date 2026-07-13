@@ -566,7 +566,7 @@ class customers_management :
         self.queue_up_position()
 
         message = None
-        if random.random() < 0.3 :
+        if random.random() < 0.5 :
             if player.snack < 10:
                 player.snack += 1
                 message = "You gotta 1 snack" 
